@@ -1,6 +1,11 @@
 ﻿#include <SFML/Graphics.hpp>
 #include <iostream>
 #include <vector>
+#include <ctime>
+#include <cstdlib>
+#include <algorithm>
+#include <string>
+#include <map>
 
 using namespace std;
 class Card {
@@ -9,20 +14,63 @@ public:
     string rank; //카드 숫자 또는 영어 값
     int value; // 카드 점수 값
     string type; // "number" 또는 "operation", 일반 카드와 사칙연산 카드 구별
+    string imagePath; // 이미지 경로
 
-    Card(string s, string r, int v, string t) : suit(s), rank(r), value(v), type(t) {}
+    Card(string s, string r, int v, string t = "number") : suit(s), rank(r), value(v), type(t) {
+        if (t == "number") {
+            imagePath = "images/card/" + r + s + ".png";
+        }
+        else {
+            imagePath = "images/card/" + r + ".png";
+        }
+    }
 };
 
 class Deck {
 public:
+    Deck(bool isOperationDeck = false) {
+        if (isOperationDeck) {
+            cards.push_back(Card("Operations", "+", 0, "operation"));
+            cards.push_back(Card("Operations", "-", 0, "operation"));
+            cards.push_back(Card("Operations", "*", 0, "operation"));
+            cards.push_back(Card("Operations", "/", 0, "operation"));
+        }
+        else {
+            string suits[] = { "H", "D", "C", "S" };
+            string ranks[] = { "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A" };
+            int values[] = { 2, 3, 4, 5, 6, 7, 8, 9, 10, 10, 10, 10, 11 };
+
+            for (int i = 0; i < 4; i++) {
+                for (int j = 0; j < 13; j++) {
+                    cards.push_back(Card(suits[i], ranks[j], values[j]));
+                }
+            }
+        }
+    }
+    void shuffle() {
+        srand(time(0));
+        random_shuffle(cards.begin(), cards.end());
+    }
+    Card drawCard() {
+        if (!cards.empty()) {
+            Card card = cards.back();
+            cards.pop_back();
+            return card;
+        }
+        return Card("", "", 0);
+    }
+
+    bool isEmpty() {
+        return cards.empty();
+    }
 
 private:
-    vector<Card> card;
+    vector<Card> cards;
 };
 
 int main() {
 
-    sf::RenderWindow window(sf::VideoMode(800, 600), "SFML Test Window");
+    sf::RenderWindow window(sf::VideoMode(1500,1200), "SFML Test Window");
 
     // 메인 루프
     while (window.isOpen()) {
