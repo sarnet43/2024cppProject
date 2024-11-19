@@ -112,6 +112,21 @@ public:
     }
 };
 
+class BlackJack {
+public:
+    BlackJack() {
+        deck.shuffle();
+    }
+
+    void play(sf::RenderWindow& window, sf::Font& font) {
+
+    }
+private:
+    Deck deck;
+    Player player;
+    Dealer dealer;
+    map<string, sf::Texture> textures;
+};
 
 int main() {
 
