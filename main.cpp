@@ -68,6 +68,51 @@ private:
     vector<Card> cards;
 };
 
+class Player {
+public:
+    vector<Card> hand;
+    int score = 0;
+
+    void addCard(Card card) {
+        hand.push_back(card);
+        score += card.value;
+    }
+
+    int calculateScore() {
+        return score;
+    }
+
+    void showHand(sf::RenderWindow& window, map<string, sf::Texture>& textures, float yPos) {
+        float xOffset = 50.f;
+        for (Card& card : hand) {
+            if (textures.find(card.imagePath) == textures.end()) {
+                sf::Texture texture;
+                if (!texture.loadFromFile(card.imagePath)) {
+                    cerr << "Error loading image: " << card.imagePath << endl;
+                    continue;
+                }
+                textures[card.imagePath] = texture;
+            }
+
+            sf::Sprite sprite(textures[card.imagePath]);
+            sprite.setPosition(xOffset, yPos);
+            window.draw(sprite);
+            xOffset += 80.f;
+        }
+    }
+
+};
+
+class Dealer : public Player {
+public:
+    void playTurn(Deck& deck) {
+        while (calculateScore() < 27) {
+            addCard(deck.drawCard());
+        }
+    }
+};
+
+
 int main() {
 
     sf::RenderWindow window(sf::VideoMode(1500,1200), "SFML Test Window");
