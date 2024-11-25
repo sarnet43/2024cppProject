@@ -122,7 +122,7 @@ public:
 
     void play(sf::RenderWindow& window, sf::Font& font) {
         //플레이어 점수 텍스트
-        sf::Text playerScoreText("", font, 20); //
+        sf::Text playerScoreText("", font, 20); 
         playerScoreText.setFillColor(sf::Color::White);
         playerScoreText.setPosition(50, 400);
 
@@ -145,7 +145,39 @@ private:
     Deck deck;
 
 };
+class ImageButton {
+public:
+    ImageButton(const std::string& imagePath, float x, float y) {
+        // 텍스처 로드
+        if (!buttonTexture.loadFromFile(imagePath)) {
+            std::cerr << "이미지를 로드할 수 없습니다: " << imagePath << std::endl;
+        }
 
+        // 스프라이트 설정
+        buttonSprite.setTexture(buttonTexture);
+        buttonSprite.setPosition(x, y);
+    }
+
+    // 버튼 그리기
+    void draw(sf::RenderWindow& window) {
+        window.draw(buttonSprite);
+    }
+
+    // 버튼 클릭 여부 확인
+    bool isClicked(sf::RenderWindow& window, sf::Event& event) {
+        if (event.type == sf::Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Left) {
+            sf::Vector2i mousePos = sf::Mouse::getPosition(window);
+            if (buttonSprite.getGlobalBounds().contains(static_cast<sf::Vector2f>(mousePos))) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+private:
+    sf::Texture buttonTexture;
+    sf::Sprite buttonSprite;
+};
 int main() {
         // 창 생성
         sf::RenderWindow window(sf::VideoMode(800, 1400), "게임");
@@ -158,8 +190,10 @@ int main() {
         }
         // 스프라이트 생성 및 중앙 배치
         sf::Sprite mainLogo(startLogo);
-        mainLogo.setPosition(
-            (window.getSize().x - mainLogo.getLocalBounds().width) / 2, 300);
+        mainLogo.setPosition((window.getSize().x - mainLogo.getLocalBounds().width) / 2, 300);
+        ImageButton startButton("images/startButton.png", window.getSize().x / 2 - 170, 1000);
+        ImageButton guideButton("images/guideButton.png", window.getSize().x / 2 - 170, 1150);
+
         // 메인 루프
         while (window.isOpen()) {
             sf::Event event;
@@ -169,11 +203,12 @@ int main() {
             }
 
             // 창을 흰색으로 초기화
-            window.clear(sf::Color::White);
+            window.clear(sf::Color(165, 182, 141));
 
             // 스프라이트를 화면에 그리기
             window.draw(mainLogo);
-
+            startButton.draw(window);
+            guideButton.draw(window);
             // 화면 갱신
             window.display();
         }
