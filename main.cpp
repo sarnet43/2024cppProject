@@ -8,6 +8,41 @@
 #include <map>
 
 using namespace std;
+
+class ImageButton {
+public:
+    ImageButton(const std::string& imagePath, float x, float y) {
+        // 텍스처 로드
+        if (!buttonTexture.loadFromFile(imagePath)) {
+            std::cerr << "이미지를 로드할 수 없습니다: " << imagePath << std::endl;
+        }
+
+        // 스프라이트 설정
+        buttonSprite.setTexture(buttonTexture);
+        buttonSprite.setPosition(x, y);
+    }
+
+    // 버튼 그리기
+    void draw(sf::RenderWindow& window) {
+        window.draw(buttonSprite);
+    }
+
+    // 버튼 클릭 여부 확인
+    bool isClicked(sf::RenderWindow& window, sf::Event& event) {
+        if (event.type == sf::Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Left) {
+            sf::Vector2i mousePos = sf::Mouse::getPosition(window);
+            if (buttonSprite.getGlobalBounds().contains(static_cast<sf::Vector2f>(mousePos))) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+private:
+    sf::Texture buttonTexture;
+    sf::Sprite buttonSprite;
+};
+
 class Card {
 public:
     string suit; //카드 문양
@@ -46,6 +81,7 @@ public:
                 }
             }
         }
+        shuffle();
     }
     void shuffle() {
         srand(time(0)); // 현재 시간을 기준으로 랜덤 시드 설정
@@ -116,13 +152,26 @@ public:
 
 class BlackJack {
 public:
-    BlackJack() {
-        deck.shuffle(); // 게임 시작 시 덱을 섞는다.
+    BlackJack() : window(sf::VideoMode(800, 600), "Blackjack Game"),
+        hitButton("images/hitButton.png", 50.f, 500.f),
+        stayButton("images/stayButton.png", 150.f, 500.f),
+        plusButton("images/plusButton.png", 50.f, 400.f),
+        minusButton("images/minButton.png", 150.f, 400.f),
+        divideButton("images/divButton.png", 250.f, 400.f),
+        multiplyButton("images/mulButton.png", 350.f, 400.f),
+        playerScore(0) {
+        if (!font.loadFromFile("font/AggroM.ttf")) {
+            cerr << "Error loading font" << endl;
+        }
+        text.setFont(font);
+        text.setCharacterSize(24);
+        text.setFillColor(sf::Color::White);
+        text.setPosition(50.f, 50.f);
     }
 
-    void play(sf::RenderWindow& window, sf::Font& font) {
+    void play() {
         //플레이어 점수 텍스트
-        sf::Text playerScoreText("", font, 20); 
+        sf::Text playerScoreText("", font, 20);
         playerScoreText.setFillColor(sf::Color::White);
         playerScoreText.setPosition(50, 400);
 
@@ -134,54 +183,25 @@ public:
         while (window.isOpen()) {
             sf::Event event;
             while (window.pollEvent(event)) {
-                if (event.type == sf::Event::Closed) {
-                    window.close();
-                } //if
-            }
-        }
+                if (event.type == sf::Event::Closed) window.close();
+            }//while event
+        }//while isOpen
     }
 
 private:
+    sf::RenderWindow window;
+    sf::Font font;
+    sf::Text text;
+    ImageButton hitButton, stayButton, plusButton, minusButton, divideButton, multiplyButton;
     Deck deck;
-
-};
-class ImageButton {
-public:
-    ImageButton(const std::string& imagePath, float x, float y) {
-        // 텍스처 로드
-        if (!buttonTexture.loadFromFile(imagePath)) {
-            std::cerr << "이미지를 로드할 수 없습니다: " << imagePath << std::endl;
-        }
-
-        // 스프라이트 설정
-        buttonSprite.setTexture(buttonTexture);
-        buttonSprite.setPosition(x, y);
-    }
-
-    // 버튼 그리기
-    void draw(sf::RenderWindow& window) {
-        window.draw(buttonSprite);
-    }
-
-    // 버튼 클릭 여부 확인
-    bool isClicked(sf::RenderWindow& window, sf::Event& event) {
-        if (event.type == sf::Event::MouseButtonPressed && event.mouseButton.button == sf::Mouse::Left) {
-            sf::Vector2i mousePos = sf::Mouse::getPosition(window);
-            if (buttonSprite.getGlobalBounds().contains(static_cast<sf::Vector2f>(mousePos))) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-private:
-    sf::Texture buttonTexture;
-    sf::Sprite buttonSprite;
+    int playerScore;
+    string selectedOperation;
+    vector<Card> playerHand;
 };
 int main() {
     bool showGuide = false;
     // 창 생성
-    sf::RenderWindow window(sf::VideoMode(800, 1400), "게임");
+    sf::RenderWindow window(sf::VideoMode(800, 1400), "Blackjack Game");
 
     // 텍스처 객체 생성
     sf::Texture startLogo;
@@ -189,7 +209,8 @@ int main() {
         cerr << "이미지를 로드할 수 없습니다." << endl;
         return -1; // 이미지 로드 실패 시 프로그램 종료
      }
-        // 스프라이트 생성 및 중앙 배치
+
+    // 스프라이트 생성 및 중앙 배치
     sf::Sprite mainLogo(startLogo);
     mainLogo.setPosition((window.getSize().x - mainLogo.getLocalBounds().width) / 2, 300);
     ImageButton startButton("images/startButton.png", window.getSize().x / 2 - 170, 1000);
@@ -198,7 +219,7 @@ int main() {
     sf::Texture guideImage;
     guideImage.loadFromFile("images/guideImage.png");
     sf::Sprite howtoplay(guideImage);
-    howtoplay.setPosition(window.getSize().x / 2 - 325, 300);
+    howtoplay.setPosition(window.getSize().x / 2 - 325, 200);
 
     // 메인 루프
     while (window.isOpen()) {
@@ -208,10 +229,8 @@ int main() {
                 window.close(); // 창 닫기
 
             // guideButton 클릭 시 설명 이미지 열기
-            if (!showGuide && guideButton.isClicked(window, event)) {
-                showGuide = true;
-
-            }   
+            if (!showGuide && guideButton.isClicked(window, event)) showGuide = true;
+            
             if (showGuide) {
                 if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Escape) showGuide = false;
             }
