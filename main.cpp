@@ -179,38 +179,55 @@ private:
     sf::Sprite buttonSprite;
 };
 int main() {
-        // 창 생성
-        sf::RenderWindow window(sf::VideoMode(800, 1400), "게임");
+    bool showGuide = false;
+    // 창 생성
+    sf::RenderWindow window(sf::VideoMode(800, 1400), "게임");
 
-        // 텍스처 객체 생성
-        sf::Texture startLogo;
-        if (!startLogo.loadFromFile("images/startLogo.png")) {
-            cerr << "이미지를 로드할 수 없습니다." << endl;
-            return -1; // 이미지 로드 실패 시 프로그램 종료
-        }
+    // 텍스처 객체 생성
+    sf::Texture startLogo;
+    if (!startLogo.loadFromFile("images/startLogo.png")) {
+        cerr << "이미지를 로드할 수 없습니다." << endl;
+        return -1; // 이미지 로드 실패 시 프로그램 종료
+     }
         // 스프라이트 생성 및 중앙 배치
-        sf::Sprite mainLogo(startLogo);
-        mainLogo.setPosition((window.getSize().x - mainLogo.getLocalBounds().width) / 2, 300);
-        ImageButton startButton("images/startButton.png", window.getSize().x / 2 - 170, 1000);
-        ImageButton guideButton("images/guideButton.png", window.getSize().x / 2 - 170, 1150);
+    sf::Sprite mainLogo(startLogo);
+    mainLogo.setPosition((window.getSize().x - mainLogo.getLocalBounds().width) / 2, 300);
+    ImageButton startButton("images/startButton.png", window.getSize().x / 2 - 170, 1000);
+    ImageButton guideButton("images/guideButton.png", window.getSize().x / 2 - 170, 1150);
 
-        // 메인 루프
-        while (window.isOpen()) {
-            sf::Event event;
-            while (window.pollEvent(event)) {
-                if (event.type == sf::Event::Closed)
-                    window.close(); // 창 닫기
+    sf::Texture guideImage;
+    guideImage.loadFromFile("images/guideImage.png");
+    sf::Sprite howtoplay(guideImage);
+    howtoplay.setPosition(window.getSize().x / 2 - 325, 300);
+
+    // 메인 루프
+    while (window.isOpen()) {
+        sf::Event event;
+        while (window.pollEvent(event)) {
+            if (event.type == sf::Event::Closed)
+                window.close(); // 창 닫기
+
+            // guideButton 클릭 시 설명 이미지 열기
+            if (!showGuide && guideButton.isClicked(window, event)) {
+                showGuide = true;
+
+            }   
+            if (showGuide) {
+                if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Escape) showGuide = false;
             }
-
-            // 창을 흰색으로 초기화
-            window.clear(sf::Color(165, 182, 141));
-
-            // 스프라이트를 화면에 그리기
-            window.draw(mainLogo);
-            startButton.draw(window);
-            guideButton.draw(window);
-            // 화면 갱신
-            window.display();
         }
+        
+
+        // 창을 흰색으로 초기화
+        window.clear(sf::Color(165, 182, 141));
+
+        // 스프라이트를 화면에 그리기
+        window.draw(mainLogo);
+        startButton.draw(window);
+        guideButton.draw(window);
+        if (showGuide) window.draw(howtoplay);
+        // 화면 갱신
+        window.display();
+    }
 	return 0;
 }
