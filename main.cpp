@@ -81,7 +81,6 @@ public:
                 }
             }
         }
-        shuffle();
     }
     void shuffle() {
         srand(time(0)); // 현재 시간을 기준으로 랜덤 시드 설정
@@ -152,51 +151,81 @@ public:
 
 class BlackJack {
 public:
-    BlackJack() : window(sf::VideoMode(800, 600), "Blackjack Game"),
-        hitButton("images/hitButton.png", 50.f, 500.f),
-        stayButton("images/stayButton.png", 150.f, 500.f),
-        plusButton("images/plusButton.png", 50.f, 400.f),
-        minusButton("images/minButton.png", 150.f, 400.f),
-        divideButton("images/divButton.png", 250.f, 400.f),
-        multiplyButton("images/mulButton.png", 350.f, 400.f),
-        playerScore(0) {
+    BlackJack(sf::RenderWindow& gameWindow)
+        : window(gameWindow),
+        hitButton("images/hitButton.png", 50.f, 1200.f),
+        stayButton("images/stayButton.png", 150.f, 1200.f),
+        plusButton("images/plusButton.png", 50.f, 1100.f),
+        minusButton("images/minusButton.png", 150.f, 1100.f),
+        divideButton("images/divideButton.png", 250.f, 1100.f),
+        multiplyButton("images/multiplyButton.png", 350.f, 1100.f),
+        selectedOperation("+") {
         if (!font.loadFromFile("font/AggroM.ttf")) {
             cerr << "Error loading font" << endl;
         }
-        text.setFont(font);
-        text.setCharacterSize(24);
-        text.setFillColor(sf::Color::White);
-        text.setPosition(50.f, 50.f);
+
+        // 덱 섞기
+        deck.shuffle();
+
+        // 초기 카드 분배
+        player.addCard(deck.drawCard()); //플레이어 2장
+        player.addCard(deck.drawCard()); 
+        dealer.addCard(deck.drawCard()); // 딜러 2장씩 배분
+        dealer.addCard(deck.drawCard());
     }
 
     void play() {
         //플레이어 점수 텍스트
         sf::Text playerScoreText("", font, 20);
-        playerScoreText.setFillColor(sf::Color::White);
+        playerScoreText.setFillColor(sf::Color::Black);
         playerScoreText.setPosition(50, 400);
 
         //딜러 점수 텍스트
         sf::Text dealerScoreText("", font, 20);
-        dealerScoreText.setFillColor(sf::Color::White);
+        dealerScoreText.setFillColor(sf::Color::Black);
         dealerScoreText.setPosition(50, 100);
 
         while (window.isOpen()) {
             sf::Event event;
             while (window.pollEvent(event)) {
                 if (event.type == sf::Event::Closed) window.close();
+
+                if (hitButton.isClicked(window, event)) handleHit();
+                else if (stayButton.isClicked(window, event)) handleStay();
+                else if (plusButton.isClicked(window, event)) selectedOperation = "+";
+                else if (minusButton.isClicked(window, event)) selectedOperation = "-";
+                else if (divideButton.isClicked(window, event)) selectedOperation = "/";
+                else if (multiplyButton.isClicked(window, event)) selectedOperation = "*";
             }//while event
         }//while isOpen
     }
 
 private:
-    sf::RenderWindow window;
+    sf::RenderWindow& window; 
     sf::Font font;
-    sf::Text text;
-    ImageButton hitButton, stayButton, plusButton, minusButton, divideButton, multiplyButton;
+    ImageButton hitButton, stayButton, plusButton, minusButton, divideButton, multiplyButton; //사칙연산 버튼
     Deck deck;
-    int playerScore;
-    string selectedOperation;
-    vector<Card> playerHand;
+    Player player; // 플레이어 객체
+    Dealer dealer; // 딜러 객체
+    string selectedOperation; //선택한 사칙연산
+
+    void handleHit() {
+        Card newCard = deck.drawCard();
+
+        if (selectedOperation == "+") player.score += newCard.value;
+        else if (selectedOperation == "-")player.score -= newCard.value;
+        else if (selectedOperation == "*")player.score *= newCard.value;
+        else if (selectedOperation == "/" && newCard.value != 0)player.score /= newCard.value;
+
+        // 플레이어 카드에 추가
+        player.addCard(newCard);
+    }
+
+    void handleStay() {
+        dealer.playTurn(deck);  //딜러의 턴 시작
+
+        
+    }
 };
 int main() {
     bool showGuide = false;
@@ -231,7 +260,7 @@ int main() {
             // guideButton 클릭 시 설명 이미지 열기
             if (!showGuide && guideButton.isClicked(window, event)) showGuide = true;
             
-            if (showGuide) {
+            if (showGuide) { //esc키를 누르면 설명 이미지 닫기
                 if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Escape) showGuide = false;
             }
         }
