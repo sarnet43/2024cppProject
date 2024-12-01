@@ -143,7 +143,7 @@ public:
 class Dealer : public Player {
 public:
     void playTurn(Deck& deck) {
-        while (calculateScore() < 27) { //점수가 27 미만이면 카드를 뽑음
+        if (calculateScore() < 27) { //점수가 27 미만이면 카드를 뽑음
             addCard(deck.drawCard());
         }
     }
@@ -153,12 +153,12 @@ class BlackJack {
 public:
     BlackJack(sf::RenderWindow& gameWindow)
         : window(gameWindow),
-        hitButton("images/hitButton.png", 50.f, 1200.f),
-        stayButton("images/stayButton.png", 150.f, 1200.f),
-        plusButton("images/plusButton.png", 50.f, 1100.f),
-        minusButton("images/minusButton.png", 150.f, 1100.f),
-        divideButton("images/divideButton.png", 250.f, 1100.f),
-        multiplyButton("images/multiplyButton.png", 350.f, 1100.f),
+        hitButton("images/hitButton.png", 100.f, 1200.f),
+        stayButton("images/stayButton.png", 400.f, 1200.f),
+        plusButton("images/plusButton.png", 50.f, 1000.f),
+        minusButton("images/subButton.png", 250.f, 1000.f),
+        divideButton("images/divButton.png", 450.f, 1000.f),
+        multiplyButton("images/mulButton.png", 650.f, 1000.f),
         selectedOperation("+") {
         if (!font.loadFromFile("font/AggroM.ttf")) {
             cerr << "Error loading font" << endl;
@@ -175,15 +175,6 @@ public:
     }
 
     void play() {
-        //플레이어 점수 텍스트
-        sf::Text playerScoreText("", font, 20);
-        playerScoreText.setFillColor(sf::Color::Black);
-        playerScoreText.setPosition(50, 400);
-
-        //딜러 점수 텍스트
-        sf::Text dealerScoreText("", font, 20);
-        dealerScoreText.setFillColor(sf::Color::Black);
-        dealerScoreText.setPosition(50, 100);
 
         while (window.isOpen()) {
             sf::Event event;
@@ -197,6 +188,30 @@ public:
                 else if (divideButton.isClicked(window, event)) selectedOperation = "/";
                 else if (multiplyButton.isClicked(window, event)) selectedOperation = "*";
             }//while event
+            window.clear(sf::Color(165, 182, 141));
+            //버튼 표시
+            hitButton.draw(window);
+            stayButton.draw(window);
+            plusButton.draw(window);
+            minusButton.draw(window);
+            divideButton.draw(window);
+            multiplyButton.draw(window);
+
+            player.showHand(window, textures, 800.f);
+            dealer.showHand(window, textures, 200.f);
+
+            // 점수 텍스트
+            sf::Text playerScoreText("Player Score: " + to_string(player.calculateScore()), font, 20);
+            playerScoreText.setFillColor(sf::Color::White);
+            playerScoreText.setPosition(50, 500);
+            window.draw(playerScoreText);
+
+            sf::Text dealerScoreText("Dealer Score: " + to_string(dealer.calculateScore()), font, 20);
+            dealerScoreText.setFillColor(sf::Color::White);
+            dealerScoreText.setPosition(50, 50);
+            window.draw(dealerScoreText);
+
+            window.display();
         }//while isOpen
     }
 
@@ -208,6 +223,7 @@ private:
     Player player; // 플레이어 객체
     Dealer dealer; // 딜러 객체
     string selectedOperation; //선택한 사칙연산
+    map<string, sf::Texture> textures;
 
     void handleHit() {
         Card newCard = deck.drawCard();
@@ -219,11 +235,11 @@ private:
 
         // 플레이어 카드에 추가
         player.addCard(newCard);
+        dealer.playTurn(deck);  //딜러의 턴 시작
     }
 
     void handleStay() {
-        dealer.playTurn(deck);  //딜러의 턴 시작
-
+        
         int playerFinalScore = abs(31 - player.calculateScore());
         int dealerFinalScore = abs(31 - dealer.calculateScore());
 
@@ -241,9 +257,10 @@ private:
     }
 };
 int main() {
-    bool showGuide = false;
+    bool showGuide = false; 
     // 창 생성
     sf::RenderWindow window(sf::VideoMode(800, 1400), "Blackjack Game");
+    BlackJack game(window);
 
     // 텍스처 객체 생성
     sf::Texture startLogo;
@@ -269,7 +286,8 @@ int main() {
         while (window.pollEvent(event)) {
             if (event.type == sf::Event::Closed)
                 window.close(); // 창 닫기
-
+            
+            if (startButton.isClicked(window, event)) game.play();
             // guideButton 클릭 시 설명 이미지 열기
             if (!showGuide && guideButton.isClicked(window, event)) showGuide = true;
             
@@ -277,9 +295,7 @@ int main() {
                 if (event.type == sf::Event::KeyPressed && event.key.code == sf::Keyboard::Escape) showGuide = false;
             }
         }
-        
 
-        // 창을 흰색으로 초기화
         window.clear(sf::Color(165, 182, 141));
 
         // 스프라이트를 화면에 그리기
