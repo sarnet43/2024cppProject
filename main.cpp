@@ -153,16 +153,19 @@ class BlackJack {
 public:
     BlackJack(sf::RenderWindow& gameWindow)
         : window(gameWindow),
-        hitButton("images/hitButton.png", 100.f, 1200.f),
+        hitButton("images/hitButton.png", 200.f, 1200.f),
         stayButton("images/stayButton.png", 400.f, 1200.f),
         plusButton("images/plusButton.png", 50.f, 1000.f),
         minusButton("images/subButton.png", 250.f, 1000.f),
         divideButton("images/divButton.png", 450.f, 1000.f),
         multiplyButton("images/mulButton.png", 650.f, 1000.f),
-        selectedOperation("+") {
+        selectedOperation("+"), playerWin(), playerLost(), deadHeat() {
         if (!font.loadFromFile("font/AggroM.ttf")) {
             cerr << "Error loading font" << endl;
         }
+        playerWin.loadFromFile("images/youwin.png");
+        playerLost.loadFromFile("images/youlost.png");
+        deadHeat.loadFromFile("images/deadheat.png");
 
         // 덱 섞기
         deck.shuffle();
@@ -197,8 +200,8 @@ public:
             divideButton.draw(window);
             multiplyButton.draw(window);
 
-            player.showHand(window, textures, 800.f);
-            dealer.showHand(window, textures, 200.f);
+            player.showHand(window, textures, 650.f);
+            dealer.showHand(window, textures, 150.f);
 
             // 점수 텍스트
             sf::Text playerScoreText("Player Score: " + to_string(player.calculateScore()), font, 20);
@@ -218,6 +221,9 @@ public:
 private:
     sf::RenderWindow& window; 
     sf::Font font;
+    sf::Texture playerWin;
+    sf::Texture playerLost;
+    sf::Texture deadHeat;
     ImageButton hitButton, stayButton, plusButton, minusButton, divideButton, multiplyButton; //사칙연산 버튼
     Deck deck;
     Player player; // 플레이어 객체
@@ -239,19 +245,23 @@ private:
     }
 
     void handleStay() {
-        
-        int playerFinalScore = abs(31 - player.calculateScore());
-        int dealerFinalScore = abs(31 - dealer.calculateScore());
+        int playerFinalScore =  player.calculateScore();
+        int dealerFinalScore =  dealer.calculateScore();
+        sf::Sprite result;
 
-        if (playerFinalScore < dealerFinalScore) {
-            cout << "player win" << endl; //이미지로 바꾸기!
+        if (31 >= playerFinalScore || 31 < dealerFinalScore) { //플레이어 승리 시 
+            result.setTexture(playerWin);
+            result.setPosition(window.getSize().x / 2 - 170, 400);
         }
-        else if (playerFinalScore > dealerFinalScore) {
-            cout << "dealer win" << endl;
+        else if (31 < playerFinalScore || 31 >= dealerFinalScore) { //플레이어 패배 시
+            result.setTexture(playerLost);
+            result.setPosition(window.getSize().x / 2 - 170, 400);
         }
-        else {
-            cout << "dead heat" << endl;
+        else { //무승부 시
+            result.setTexture(deadHeat);
+            result.setPosition(window.getSize().x / 2 - 170, 400);
         }
+
 
         window.close(); // 게임 종료
     }
