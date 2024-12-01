@@ -71,7 +71,7 @@ public:
             cards.push_back(Card("Operations", "/", 0, "operation"));
         }
         else {
-            string suits[] = { "H", "D", "C", "S" };
+            string suits[] = { "H", "D", "C", "S" }; //H = Heart, D = Diamond, C = Club, S = Spades
             string ranks[] = { "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A" };
             int values[] = { 2, 3, 4, 5, 6, 7, 8, 9, 10, 10, 10, 10, 11 };
 
@@ -107,10 +107,13 @@ class Player {
 public:
     vector<Card> hand;
     int score = 0;
-
+    int cardCount = 0;
     void addCard(Card card) {
-        hand.push_back(card); //hand에 카드 추가
-        score += card.value; //점수에 카드 점수 더하기
+        hand.push_back(card); // 카드 추가
+        cardCount++;          // 받은 카드 개수 증가
+        if (cardCount <= 2) { // 처음 2장만 점수에 더함
+            score += card.value;
+        }
     }
 
     int calculateScore() {
@@ -143,7 +146,7 @@ public:
 class Dealer : public Player {
 public:
     void playTurn(Deck& deck) {
-        if (calculateScore() < 27) { //점수가 27 미만이면 카드를 뽑음
+        if (calculateScore() < 31) { 
             addCard(deck.drawCard());
         }
     }
@@ -153,8 +156,8 @@ class BlackJack {
 public:
     BlackJack(sf::RenderWindow& gameWindow)
         : window(gameWindow),
-        hitButton("images/hitButton.png", 200.f, 1200.f),
-        stayButton("images/stayButton.png", 400.f, 1200.f),
+        hitButton("images/hitButton.png", 140.f, 1200.f),
+        stayButton("images/stayButton.png", 450.f, 1200.f),
         plusButton("images/plusButton.png", 50.f, 1000.f),
         minusButton("images/subButton.png", 250.f, 1000.f),
         divideButton("images/divButton.png", 450.f, 1000.f),
@@ -186,10 +189,10 @@ public:
 
                 if (hitButton.isClicked(window, event)) handleHit();
                 else if (stayButton.isClicked(window, event)) handleStay();
-                else if (plusButton.isClicked(window, event)) selectedOperation = "+";
-                else if (minusButton.isClicked(window, event)) selectedOperation = "-";
-                else if (divideButton.isClicked(window, event)) selectedOperation = "/";
-                else if (multiplyButton.isClicked(window, event)) selectedOperation = "*";
+                else if (plusButton.isClicked(window, event)) selectedOperation = "plus";
+                else if (minusButton.isClicked(window, event)) selectedOperation = "minus";
+                else if (divideButton.isClicked(window, event)) selectedOperation = "division";
+                else if (multiplyButton.isClicked(window, event)) selectedOperation = "times";
             }//while event
             window.clear(sf::Color(165, 182, 141));
             //버튼 표시
@@ -204,13 +207,13 @@ public:
             dealer.showHand(window, textures, 150.f);
 
             // 점수 텍스트
-            sf::Text playerScoreText("Player Score: " + to_string(player.calculateScore()), font, 20);
-            playerScoreText.setFillColor(sf::Color::White);
+            sf::Text playerScoreText("Player Score: " + to_string(player.calculateScore()), font, 30);
+            playerScoreText.setFillColor(sf::Color::Black);
             playerScoreText.setPosition(50, 500);
             window.draw(playerScoreText);
 
-            sf::Text dealerScoreText("Dealer Score: " + to_string(dealer.calculateScore()), font, 20);
-            dealerScoreText.setFillColor(sf::Color::White);
+            sf::Text dealerScoreText("Dealer Score: " + to_string(dealer.calculateScore()), font, 30);
+            dealerScoreText.setFillColor(sf::Color::Black);
             dealerScoreText.setPosition(50, 50);
             window.draw(dealerScoreText);
 
@@ -234,10 +237,10 @@ private:
     void handleHit() {
         Card newCard = deck.drawCard();
 
-        if (selectedOperation == "+") player.score += newCard.value;
-        else if (selectedOperation == "-")player.score -= newCard.value;
-        else if (selectedOperation == "*")player.score *= newCard.value;
-        else if (selectedOperation == "/" && newCard.value != 0)player.score /= newCard.value;
+        if (selectedOperation == "plus") player.score += newCard.value;
+        else if (selectedOperation == "minus") player.score -= newCard.value;
+        else if (selectedOperation == "times") player.score *= newCard.value;
+        else if (selectedOperation == "division" && newCard.value != 0) player.score /= newCard.value;
 
         // 플레이어 카드에 추가
         player.addCard(newCard);
@@ -249,23 +252,45 @@ private:
         int dealerFinalScore =  dealer.calculateScore();
         sf::Sprite result;
 
-        if (31 >= playerFinalScore || 31 < dealerFinalScore) { //플레이어 승리 시 
-            result.setTexture(playerWin);
-            result.setPosition(window.getSize().x / 2 - 170, 400);
-        }
-        else if (31 < playerFinalScore || 31 >= dealerFinalScore) { //플레이어 패배 시
+        dealer.playTurn(deck);
+
+        if (playerFinalScore > 31) {
+            // 플레이어 점수가 31을 초과하면 무조건 패배
             result.setTexture(playerLost);
-            result.setPosition(window.getSize().x / 2 - 170, 400);
+            result.setPosition(window.getSize().x / 2 - 250, 400);
         }
-        else { //무승부 시
+        else if (dealerFinalScore > 31) {
+            // 딜러 점수가 31을 초과하면 플레이어 승리
+            result.setTexture(playerWin);
+            result.setPosition(window.getSize().x / 2 - 250, 400);
+        }
+        else if (playerFinalScore > dealerFinalScore) {
+            // 점수가 31 이하이고, 플레이어가 더 높은 점수라면 승리
+            result.setTexture(playerWin);
+            result.setPosition(window.getSize().x / 2 - 250, 400);
+        }
+        else if (playerFinalScore < dealerFinalScore) {
+            // 점수가 31 이하이고, 딜러가 더 높은 점수라면 패배
+            result.setTexture(playerLost);
+            result.setPosition(window.getSize().x / 2 - 250, 400);
+        }
+        else {
+            // 점수가 동점인 경우 무승부
             result.setTexture(deadHeat);
-            result.setPosition(window.getSize().x / 2 - 170, 400);
+            result.setPosition(window.getSize().x / 2 - 250, 400);
         }
 
+        //결과 이미지를 띄우고 2초 뒤 종료
+        sf::Clock clock;
+        while (clock.getElapsedTime().asSeconds() < 2.f) {
+            window.draw(result);
+            window.display();
+        }
 
         window.close(); // 게임 종료
     }
 };
+
 int main() {
     bool showGuide = false; 
     // 창 생성
