@@ -224,7 +224,20 @@ private:
     void handleStay() {
         dealer.playTurn(deck);  //딜러의 턴 시작
 
-        
+        int playerFinalScore = abs(31 - player.calculateScore());
+        int dealerFinalScore = abs(31 - dealer.calculateScore());
+
+        if (playerFinalScore < dealerFinalScore) {
+            cout << "player win" << endl; //이미지로 바꾸기!
+        }
+        else if (playerFinalScore > dealerFinalScore) {
+            cout << "dealer win" << endl;
+        }
+        else {
+            cout << "dead heat" << endl;
+        }
+
+        window.close(); // 게임 종료
     }
 };
 int main() {
