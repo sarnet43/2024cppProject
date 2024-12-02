@@ -55,9 +55,6 @@ public:
         if (t == "number") {
             imagePath = "images/card/" + r + s + ".png";
         }
-        else {
-            imagePath = "images/card/" + r + ".png";
-        }
     }
 };
 
@@ -115,7 +112,6 @@ public:
             score += card.value;
         }
     }
-
     int calculateScore() {
         return score; //현재 점수 반환
     }
@@ -140,7 +136,6 @@ public:
             xOffset += 80.f; // 다음 카드의 가로 위치로 이동
         }
     }
-
 };
 
 class Dealer : public Player {
@@ -185,7 +180,6 @@ public:
     }
 
     void play() {
-
         while (window.isOpen()) {
             sf::Event event;
             while (window.pollEvent(event)) {
@@ -257,6 +251,7 @@ private:
         if (dealer.score >= 31) determineWinner();
     }
     void determineWinner() { //승부 확인
+        //플레이어와 딜러의 최종 점수 반환
         int playerFinalScore = player.calculateScore();
         int dealerFinalScore = dealer.calculateScore();
 
@@ -372,7 +367,8 @@ int main() {
             if (event.type == sf::Event::Closed)
                 window.close(); // 창 닫기
             
-            if (startButton.isClicked(window, event)) game.play();
+            if (startButton.isClicked(window, event)) game.play(); //startButton 클릭 시 게임 시작
+
             // guideButton 클릭 시 설명 이미지 열기
             if (!showGuide && guideButton.isClicked(window, event)) showGuide = true;
             
