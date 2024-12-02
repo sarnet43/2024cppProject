@@ -249,7 +249,7 @@ private:
         // 플레이어 카드에 추가
         player.addCard(newCard);
         dealer.playTurn(deck);  //딜러의 턴 시작
-        if (player.score > 31 || dealer.score > 31) determineWinner();
+        if (player.score >= 31 || dealer.score >= 31) determineWinner();
     }
 
     void handleStay() {
@@ -259,41 +259,77 @@ private:
     void determineWinner() { //승부 확인
         int playerFinalScore = player.calculateScore();
         int dealerFinalScore = dealer.calculateScore();
+
+        window.clear(sf::Color(165, 182, 141));
+
+        // 플레이어와 딜러의 카드를 화면에 표시
+        player.showHand(window, textures, 650.f);
+        dealer.showHand(window, textures, 150.f);
+
+        // 점수 텍스트 표시
+        sf::Text playerScoreText("Player Score: " + to_string(playerFinalScore), font, 30);
+        playerScoreText.setFillColor(sf::Color::Black);
+        playerScoreText.setPosition(50, 520);
+        window.draw(playerScoreText);
+
+        sf::Text dealerScoreText("Dealer Score: " + to_string(dealerFinalScore), font, 30);
+        dealerScoreText.setFillColor(sf::Color::Black);
+        dealerScoreText.setPosition(50, 50);
+        window.draw(dealerScoreText);
+
+        hitButton.draw(window);
+        stayButton.draw(window);
+        plusButton.draw(window);
+        minusButton.draw(window);
+        divideButton.draw(window);
+        multiplyButton.draw(window);
+        // 현재 상태를 렌더링
+        window.display();
+
+        // 잠시 대기
+        sf::sleep(sf::seconds(1.0f));
+    
         sf::Sprite result;
 
         if (playerFinalScore > 31) {
             // 플레이어 점수가 31을 초과하면 무조건 패배
             result.setTexture(playerLost);
-            result.setPosition(window.getSize().x / 2 - 250, 400);
         }
         else if (dealerFinalScore > 31) {
             // 딜러 점수가 31을 초과하면 플레이어 승리
             result.setTexture(playerWin);
-            result.setPosition(window.getSize().x / 2 - 250, 400);
         }
         else if (playerFinalScore > dealerFinalScore) {
             // 점수가 31 이하이고, 플레이어가 더 높은 점수라면 승리
             result.setTexture(playerWin);
-            result.setPosition(window.getSize().x / 2 - 250, 400);
         }
         else if (playerFinalScore < dealerFinalScore) {
             // 점수가 31 이하이고, 딜러가 더 높은 점수라면 패배
             result.setTexture(playerLost);
-            result.setPosition(window.getSize().x / 2 - 250, 400);
         }
         else {
             // 점수가 동점인 경우 무승부
             result.setTexture(deadHeat);
-            result.setPosition(window.getSize().x / 2 - 250, 400);
         }
+        result.setPosition(window.getSize().x / 2 - 250, 400);
 
-        //결과 이미지를 띄우고 2초 뒤 종료
-        sf::Clock clock;
-        while (clock.getElapsedTime().asSeconds() < 2.f) {
-            window.draw(result);
-            window.display();
-        }
+        //결과 이미지를 띄우고
+        window.clear(sf::Color(165, 182, 141));
+        player.showHand(window, textures, 650.f);
+        dealer.showHand(window, textures, 150.f);
+        window.draw(playerScoreText);
+        window.draw(dealerScoreText);
+        hitButton.draw(window);
+        stayButton.draw(window);
+        plusButton.draw(window);
+        minusButton.draw(window);
+        divideButton.draw(window);
+        multiplyButton.draw(window);
+        window.draw(result);
+        window.display();
 
+        //2초간 대기
+        sf::sleep(sf::seconds(2.0f));
         window.close(); // 게임 종료
 
     }
