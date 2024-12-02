@@ -71,7 +71,7 @@ public:
             cards.push_back(Card("Operations", "/", 0, "operation"));
         }
         else {
-            string suits[] = { "H", "D", "C", "S" }; //H = Heart, D = Diamond, C = Club, S = Spades
+            string suits[] = { "H", "D", "C", "S" }; //H = Heart, D = Diamond, C = Club, S = Spade
             string ranks[] = { "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A" };
             int values[] = { 2, 3, 4, 5, 6, 7, 8, 9, 10, 10, 10, 10, 11 };
 
@@ -254,7 +254,7 @@ private:
 
     void handleStay() {
         dealer.playTurn(deck);
-        if (dealer.score > 31) determineWinner();
+        if (dealer.score >= 31) determineWinner();
     }
     void determineWinner() { //승부 확인
         int playerFinalScore = player.calculateScore();
@@ -338,8 +338,12 @@ private:
 int main() {
     bool showGuide = false; 
     // 창 생성
-    sf::RenderWindow window(sf::VideoMode(800, 1400), "Blackjack Game");
+    sf::RenderWindow window(sf::VideoMode(800, 1400), "ARITHMETIC BLACKJACK");
     BlackJack game(window);
+
+    sf::Image icon;
+    icon.loadFromFile("images/icon.png");
+    window.setIcon(icon.getSize().x, icon.getSize().y, icon.getPixelsPtr());
 
     // 텍스처 객체 생성
     sf::Texture startLogo;
