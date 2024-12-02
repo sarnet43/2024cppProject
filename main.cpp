@@ -73,7 +73,7 @@ public:
         else {
             string suits[] = { "H", "D", "C", "S" }; //H = Heart, D = Diamond, C = Club, S = Spade
             string ranks[] = { "2", "3", "4", "5", "6", "7", "8", "9", "10", "J", "Q", "K", "A" };
-            int values[] = { 2, 3, 4, 5, 6, 7, 8, 9, 10, 10, 10, 10, 11 };
+            int values[] = { 2, 3, 4, 5, 6, 7, 8, 9, 10, 10, 10, 10, 1 };
 
             for (int i = 0; i < 4; i++) {
                 for (int j = 0; j < 13; j++) {
@@ -291,7 +291,11 @@ private:
     
         sf::Sprite result;
 
-        if (playerFinalScore > 31) {
+        if (playerFinalScore > 31 && dealerFinalScore > 31) {
+            // 플레이어와 딜러 모두 31을 초과한 경우 무승부
+            result.setTexture(deadHeat);
+        }
+        else if (playerFinalScore > 31) {
             // 플레이어 점수가 31을 초과하면 무조건 패배
             result.setTexture(playerLost);
         }
@@ -299,12 +303,10 @@ private:
             // 딜러 점수가 31을 초과하면 플레이어 승리
             result.setTexture(playerWin);
         }
-        else if (playerFinalScore > dealerFinalScore) {
-            // 점수가 31 이하이고, 플레이어가 더 높은 점수라면 승리
+        else if (playerFinalScore == 31) {
             result.setTexture(playerWin);
         }
-        else if (playerFinalScore < dealerFinalScore) {
-            // 점수가 31 이하이고, 딜러가 더 높은 점수라면 패배
+        else if (dealerFinalScore == 31) {
             result.setTexture(playerLost);
         }
         else {
@@ -328,7 +330,7 @@ private:
         window.draw(result);
         window.display();
 
-        //2초간 대기
+        ////2초간 대기
         sf::sleep(sf::seconds(2.0f));
         window.close(); // 게임 종료
 
