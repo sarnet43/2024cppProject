@@ -108,7 +108,7 @@ public:
     vector<Card> hand;
     int score = 0;
     int cardCount = 0;
-    void addCard(Card card) {
+    virtual void addCard(Card card) {
         hand.push_back(card); // 카드 추가
         cardCount++;          // 받은 카드 개수 증가
         if (cardCount <= 2) { // 처음 2장만 점수에 더함
@@ -149,6 +149,10 @@ public:
         if (calculateScore() < 31) { 
             addCard(deck.drawCard());
         }
+    }
+    void addCard(Card card) override{
+        hand.push_back(card); // 카드 추가
+        score += card.value;
     }
 };
 
@@ -209,7 +213,7 @@ public:
             // 점수 텍스트
             sf::Text playerScoreText("Player Score: " + to_string(player.calculateScore()), font, 30);
             playerScoreText.setFillColor(sf::Color::Black);
-            playerScoreText.setPosition(50, 500);
+            playerScoreText.setPosition(50, 520);
             window.draw(playerScoreText);
 
             sf::Text dealerScoreText("Dealer Score: " + to_string(dealer.calculateScore()), font, 30);
@@ -245,14 +249,17 @@ private:
         // 플레이어 카드에 추가
         player.addCard(newCard);
         dealer.playTurn(deck);  //딜러의 턴 시작
+        if (player.score > 31 || dealer.score > 31) determineWinner();
     }
 
     void handleStay() {
-        int playerFinalScore =  player.calculateScore();
-        int dealerFinalScore =  dealer.calculateScore();
-        sf::Sprite result;
-
         dealer.playTurn(deck);
+        if (dealer.score > 31) determineWinner();
+    }
+    void determineWinner() { //승부 확인
+        int playerFinalScore = player.calculateScore();
+        int dealerFinalScore = dealer.calculateScore();
+        sf::Sprite result;
 
         if (playerFinalScore > 31) {
             // 플레이어 점수가 31을 초과하면 무조건 패배
@@ -288,6 +295,7 @@ private:
         }
 
         window.close(); // 게임 종료
+
     }
 };
 
