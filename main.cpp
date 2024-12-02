@@ -187,7 +187,7 @@ public:
 
                 if (hitButton.isClicked(window, event)) handleHit();
                 else if (stayButton.isClicked(window, event)) handleStay();
-                else if (plusButton.isClicked(window, event)) selectedOperation = "plus";
+                else if (plusButton.isClicked(window, event)) selectedOperation = "plus"; //사칙연산 버튼을 클릭 시 selectedOperation 변경
                 else if (minusButton.isClicked(window, event)) selectedOperation = "minus";
                 else if (divideButton.isClicked(window, event)) selectedOperation = "division";
                 else if (multiplyButton.isClicked(window, event)) selectedOperation = "times";
@@ -201,6 +201,7 @@ public:
             divideButton.draw(window);
             multiplyButton.draw(window);
 
+            //플레이어, 딜러 카드 표시
             player.showHand(window, textures, 650.f);
             dealer.showHand(window, textures, 150.f);
 
